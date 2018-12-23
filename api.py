@@ -1,13 +1,17 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, Response
 from werkzeug import secure_filename
 import os
 import sys
 import hashlib
 import time
+import ipfsapi
+import json
 
 app = Flask(__name__)
 UPLOAD_FOLDER = './uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER 
+api = ipfsapi.connect('https://ipfs.infura.io', 5001)
+infuraBaseUrl = 'https://ipfs.infura.io/ipfs/'
 
 def genHash(address, BUF_SIZE = 65536):
     sha256 = hashlib.sha256()
@@ -36,7 +40,14 @@ def upload_file():
       ext = str(f.filename).split(".")[-1]
       path = os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(name)+"."+ext)
       f.save(path)
-      return 'file uploaded successfully'
+      res = api.add(path)
+      data = {
+         'url'  : str(infuraBaseUrl + res['Hash']),
+      }
+      js = json.dumps(data)
+
+      resp = Response(js, status=200, mimetype='application/json')
+   return resp
 
 if __name__ == '__main__':
     from argparse import ArgumentParser
