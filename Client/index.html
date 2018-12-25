@@ -1,0 +1,22 @@
+<html>
+    <body>
+        <form action="http://localhost:5000/uploader" method="POST" id="submitfile" enctype="multipart/form-data">
+            <input type="file" name="file"/>
+            <input type="submit" id="btnSubmit"/>
+        </form>
+        <div id="details">
+            <p>Address of the Account : <span id="address"></span></p>
+            <p>Number of Files on the Account : <span id="numFiles"></span></p>
+            <p id="files">
+                List of Files on the Account :
+                <ul id="fileList">
+                </ul>
+            </p>
+        </div>
+        <p id="result"></p>
+    </body>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="./js/Base58.min.js" charset="utf-8"></script>
+    <script src="./js/Multihash.min.js" charset="utf-8"></script>
+    <script src="./js/main.js" charset="utf-8"></script>
+</html>

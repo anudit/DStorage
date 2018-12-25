@@ -42,7 +42,7 @@ def upload_file():
       f.save(path)
       res = api.add(path)
       data = {
-         'url'  : str(infuraBaseUrl + res['Hash']),
+         'ipfsHash'  : str(res['Hash']),
       }
       js = json.dumps(data)
 

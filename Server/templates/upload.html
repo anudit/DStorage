@@ -1,0 +1,94 @@
+<html>
+    <body>
+        <form action="http://localhost:5000/uploader" method="POST" id="submitfile" enctype="multipart/form-data">
+            <input type="file" name="file"/>
+            <input type="submit" id="btnSubmit"/>
+        </form>
+        <p id="res"></p>
+    </body>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://anudit.tech/cdn/Base58.min.js" charset="utf-8"></script>
+    <script src="https://anudit.tech/cdn/Multihash.min.js" charset="utf-8"></script>
+    <script>
+
+      window.addEventListener('load', async () => {
+         if (window.ethereum) {
+            window.web3 = new Web3(ethereum);
+            try {
+                  await ethereum.enable();
+            } catch (error) {
+                  console.log(error);
+            }
+         } else if (window.web3) {
+            window.web3 = new Web3(web3.currentProvider);
+         } else {
+            web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/8f68025ea6a8425cb75ae44591a8b1b3"));
+         }
+      });
+
+         web3.eth.defaultAccount = web3.eth.accounts[0];
+         var IPFSStorageContract = web3.eth.contract([{"constant":false,"inputs":[],"name":"clearEntry","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_digest","type":"bytes32"},{"name":"_hashFunction","type":"uint8"},{"name":"_size","type":"uint8"}],"name":"setEntry","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"key","type":"address"},{"indexed":false,"name":"digest","type":"bytes32"},{"indexed":false,"name":"hashFunction","type":"uint8"},{"indexed":false,"name":"size","type":"uint8"}],"name":"EntrySet","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"key","type":"address"}],"name":"EntryDeleted","type":"event"},{"constant":true,"inputs":[{"name":"_address","type":"address"}],"name":"getEntry","outputs":[{"name":"digest","type":"bytes32"},{"name":"hashfunction","type":"uint8"},{"name":"size","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"}]);
+         var IPFSStorage = IPFSStorageContract.at('0x859c5fd8be133510fc5c7c15563fb0a3ccdbb821');
+         console.log(IPFSStorage);
+
+         var EntrySetEvent = IPFSStorage.EntrySet();
+         EntrySetEvent.watch(function(error, result){
+            if (!error)
+                {
+                    console.log(result);
+                } else {
+                    console.log(error);
+                }
+        });
+
+        $(document).ready(function() {
+
+            $("#btnSubmit").click(function(event) {
+                event.preventDefault();
+                var form = $('#submitfile')[0];
+                var data = new FormData(form);
+
+                $("#btnSubmit").prop("disabled", true);
+
+                $.ajax({
+                    type: "POST",
+                    enctype: 'multipart/form-data',
+                    url: "http://localhost:5000/uploader",
+                    data: data,
+                    processData: false,
+                    contentType: false,
+                    cache: false,
+                    timeout: 600000,
+                    success: function(data) {
+
+                     $("#result").text(data);
+                     console.log("SUCCESS : ", data);
+                     $("#btnSubmit").prop("disabled", false);
+
+                     var multihash =  data['ipfsHash'];
+                     var decoded =  getBytes32FromMultihash(multihash);
+                     var digest = decoded['digest'];
+                     var hashFunction = decoded['hashFunction'];
+                     var size = decoded['size'];
+                     IPFSStorage.setEntry(digest,hashFunction,size,function(error, result) {
+                        if (!error) {
+                              console.log(result);
+                        } else
+                              console.log(error);
+                     });
+                        
+                    },
+                    error: function(e) {
+
+                        $("#result").text(e.responseText);
+                        console.log("ERROR : ", e);
+                        $("#btnSubmit").prop("disabled", false);
+
+                    }
+                });
+
+            });
+
+        });
+    </script>
+</html>
